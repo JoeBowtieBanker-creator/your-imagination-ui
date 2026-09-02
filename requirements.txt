@@ -1,0 +1,6 @@
+flask>=3.0
+flask-sock>=0.7
+requests>=2.31
+websocket-client>=1.7
+imageio-ffmpeg>=0.5
+llama-cpp-python>=0.3.16

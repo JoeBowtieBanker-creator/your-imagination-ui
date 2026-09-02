@@ -1,0 +1,26 @@
+{
+  "id": "ltx-23",
+  "title": "LTX-2.3",
+  "blurb": "Alternate video model. H3 is the recommended video path; this is extra.",
+  "modes": ["t2v", "i2v"],
+  "family": "ltx",
+  "clip_type": "ltxv",
+  "graph": "ltx",
+  "prompt_recipe": "ltx",
+  "files": {
+    "unet": ["ltx-2.3-22b*", "ltx-2.3*"],
+    "clip": ["gemma_3_12B*", "gemma-3-12b*", "gemma3*12b*"],
+    "vae": ["ltx-2.5-video-vae*", "ltx-2*video*vae*", "LTX2_video_vae*"]
+  },
+  "recommended_loras": [
+    {"id": "distilled", "label": "2.3 distilled", "patterns": ["ltx-2.3-22b-distilled-lora*"], "strength": 1.0, "on": true}
+  ],
+  "defaults": {
+    "steps": 8,
+    "cfg": 1.0,
+    "sampler": "euler",
+    "scheduler": "simple",
+    "fps": 24,
+    "duration": 5
+  }
+}

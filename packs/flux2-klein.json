@@ -1,0 +1,26 @@
+{
+  "id": "flux2-klein",
+  "title": "Flux 2 Klein",
+  "blurb": "Klein 4B Base stills: about 20 steps, CFG 4. Attach a photo to edit the same person.",
+  "modes": ["t2i", "i2i", "edit"],
+  "family": "flux2",
+  "clip_type": "flux2",
+  "graph": "flux2_klein",
+  "prompt_recipe": "klein",
+  "files": {
+    "unet": ["flux-2-klein-4b*", "flux-2-klein-base-4b*", "flux2*klein*"],
+    "clip": ["qwen_3_4b*", "qwen3-4b-heretic*", "qwen3-4b*", "qwen3_4b*"],
+    "vae": ["flux2-vae*", "flux-2-vae*", "flux2_vae*"]
+  },
+  "recommended_loras": [],
+  "nsfw_loras": [
+    {"id": "klein_nsfw_fix", "label": "Klein Fixes NSFW (4B female anatomy)", "patterns": ["klein4b_FLUX_NSFW_Fix*", "FLUX_NSFW_Fix*"], "strength": 0.85, "on": true}
+  ],
+  "defaults": {
+    "steps": 20,
+    "cfg": 4.0,
+    "sampler": "euler",
+    "scheduler": "simple",
+    "denoise": 1.0
+  }
+}

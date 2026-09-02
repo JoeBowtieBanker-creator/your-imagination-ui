@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta http-equiv="Cache-Control" content="no-store" />
+<title>Your Imagination</title>
+<link rel="icon" href="/favicon.png" type="image/png" />
+<style>
+  :root {
+    --bg: #000;
+    --panel: #0c0c0d;
+    --elev: #141416;
+    --line: rgba(255,255,255,.08);
+    --ink: #f5f5f5;
+    --dim: #9a9a9d;
+    --faint: #5c5c60;
+    --accent: #f5a524;
+    --good: #34c759;
+    --bad: #ff5a4d;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
+  }
+  * { box-sizing: border-box }
+  html, body { height: 100%; margin: 0 }
+  body {
+    background: var(--bg); color: var(--ink); font-family: var(--sans);
+    font-size: 14px; overflow: hidden; -webkit-font-smoothing: antialiased;
+  }
+  button { font-family: inherit; color: inherit; cursor: pointer }
+  ::-webkit-scrollbar { width: 8px; height: 8px }
+  ::-webkit-scrollbar-thumb { background: #2a2a2c; border-radius: 8px }
+
+  .app { height: 100vh; display: grid; grid-template-rows: 52px 1fr auto; }
+
+  .top {
+    display: flex; align-items: center; gap: 12px; padding: 0 16px;
+    border-bottom: 1px solid var(--line); background: rgba(0,0,0,.72);
+    backdrop-filter: blur(12px); z-index: 5;
+  }
+  .brand { font-weight: 650; letter-spacing: -.03em; font-size: 16px; display: flex; align-items: center; gap: 8px }
+  .brand .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--bad); box-shadow: 0 0 10px var(--bad); transition: background .2s, box-shadow .2s }
+  .brand .dot.ok { background: var(--good); box-shadow: 0 0 10px var(--good) }
+  .pack-pick { position: relative }
+  .pack-chip {
+    display: flex; align-items: center; gap: 8px; background: var(--elev);
+    border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px 6px 8px;
+    font-size: 12.5px; font-weight: 600; cursor: pointer; color: inherit; font-family: inherit;
+  }
+  .pack-chip:hover { border-color: #3a3a3d }
+  .pack-chip .swatch { width: 18px; height: 18px; border-radius: 5px; background: #1c1c1f; display: grid; place-items: center; font-size: 10px }
+  .pack-chip .caret { color: var(--faint); font-size: 10px; margin-left: 2px }
+  .pack-chip.missing { color: var(--accent) }
+  .pack-chip.open { border-color: #3a3a3d }
+  .pack-menu {
+    position: absolute; top: calc(100% + 8px); left: 0; min-width: 280px; max-width: 360px;
+    background: #141416; border: 1px solid var(--line); border-radius: 14px;
+    padding: 6px; z-index: 40; box-shadow: 0 18px 50px rgba(0,0,0,.55);
+    max-height: min(70vh, 420px); overflow: auto;
+  }
+  .pack-menu[hidden] { display: none }
+  .pack-menu button {
+    display: block; width: 100%; text-align: left; background: transparent;
+    border: none; border-radius: 10px; padding: 8px 10px; color: var(--ink);
+  }
+  .pack-menu button:hover, .pack-menu button.on { background: #1c1c1f }
+  .pack-menu .pm-title, .pack-menu .pm-title { font-size: 13px; font-weight: 650 }
+  .pack-menu .pm-sub, .pack-menu .pm-sub { font-size: 11px; color: var(--dim); margin-top: 2px }
+  .pack-menu .pm-head {
+    padding: 8px 10px 4px; font-size: 10px; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--faint);
+  }
+  .pack-menu .pm-foot, .pack-menu .pm-foot {
+    margin-top: 4px; padding-top: 4px; border-top: 1px solid var(--line);
+    font-size: 12px; color: var(--dim);
+  }
+  .top-right { margin-left: auto; display: flex; align-items: center; gap: 8px }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px;
+    background: var(--elev); border: 1px solid var(--line); font-size: 11px; color: var(--dim);
+  }
+  .led { width: 7px; height: 7px; border-radius: 50%; background: var(--faint) }
+  .pill.ok .led { background: var(--good); box-shadow: 0 0 8px var(--good) }
+  .pill.err .led { background: var(--bad) }
+  .pill.warn .led { background: var(--accent) }
+  .conn-btn {
+    background: #1c1c1f; border: 1px solid var(--line); border-radius: 999px;
+    padding: 5px 12px; font-size: 11.5px; font-weight: 650; color: var(--dim);
+  }
+  .conn-btn:hover { color: var(--ink); border-color: #3a3a3d }
+  .conn-btn.on { color: var(--good); border-color: rgba(52,199,89,.35) }
+  .icon-btn {
+    width: 34px; height: 34px; border-radius: 10px; background: transparent;
+    border: 1px solid var(--line); display: grid; place-items: center; color: var(--dim);
+  }
+  .icon-btn:hover { color: var(--ink); border-color: #3a3a3d }
+  .icon-btn.muted { color: var(--faint) }
+
+  .stage {
+    position: relative; display: flex; flex-direction: row; align-items: stretch;
+    justify-content: flex-start; min-height: 0;
+    padding: 0 48px 0 0;
+    background: radial-gradient(1200px 500px at 50% 40%, #121214 0%, #000 70%);
+  }
+  .stage-main {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    flex: 1 1 auto; min-width: 0; min-height: 0; max-width: none; max-height: 100%;
+  }
+  .stage-pending {
+    width: min(420px, 70vw); height: min(280px, 40vh); border-radius: 18px;
+    background: #141416; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 8px; color: #fff;
+  }
+  .stage-pending-pct { font-size: 28px; font-weight: 650; letter-spacing: -.04em }
+  .stage-pending-lab { font-size: 12px; color: var(--dim) }
+  .frame {
+    max-width: min(860px, 100%); max-height: 100%; border-radius: 18px; overflow: hidden;
+    display: flex; align-items: center; justify-content: center; position: relative;
+    min-width: 0; min-height: 0; width: auto; margin: 0 auto;
+  }
+  .frame img, .frame video {
+    display: block; max-width: min(860px, 100%); max-height: calc(100vh - 280px);
+    width: auto; height: auto; border-radius: 18px; background: #111; margin: 0 auto;
+    object-fit: contain; object-position: center;
+  }
+  .frame video { min-width: 0; }
+  .stage-player {
+    position: relative; display: block; width: max-content;
+    max-width: min(860px, 100%); max-height: calc(100vh - 280px);
+    min-width: 0; line-height: 0; flex: 0 0 auto; align-self: center;
+  }
+  .stage-player video {
+    cursor: pointer; display: block;
+    max-width: min(860px, 100%); max-height: calc(100vh - 280px);
+    width: auto; height: auto;
+    object-fit: contain; object-position: center;
+  }
+  .video-seek {
+    position: absolute; left: 10px; right: 10px; bottom: 10px; z-index: 3;
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 10px; border-radius: 999px;
+    background: rgba(12,12,14,.82); border: 1px solid rgba(255,255,255,.14);
+    backdrop-filter: blur(10px); line-height: 1; user-select: none;
+  }
+  .video-seek-t {
+    font-size: 11px; font-weight: 650; color: #fff;
+    font-variant-numeric: tabular-nums; min-width: 34px; text-align: center;
+  }
+  .video-seek input[type=range] {
+    flex: 1; min-width: 64px; height: 4px; margin: 0;
+    accent-color: var(--accent); cursor: pointer;
+  }
+  .placeholder { text-align: center; color: var(--faint); user-select: none; padding: 40px }
+  .placeholder h1 { color: var(--ink); font-weight: 600; letter-spacing: -.03em; font-size: 28px; margin: 0 0 8px }
+  .placeholder p { margin: 4px 0; font-size: 13px }
+  .missing-box {
+    max-width: 420px; text-align: left; background: var(--elev); border: 1px solid var(--line);
+    border-radius: 14px; padding: 16px 18px; color: var(--dim); font-size: 13px; line-height: 1.5;
+  }
+  .missing-box h3 { margin: 0 0 8px; color: var(--ink); font-size: 14px }
+  .missing-box code { font-size: 11.5px; color: var(--accent) }
+  .veil {
+    position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
+    background: rgba(0,0,0,.28); backdrop-filter: blur(10px) saturate(.75); z-index: 4;
+    border-radius: 18px;
+  }
+  .veil.on { display: flex }
+  .veil-chip {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    padding: 10px 16px; border-radius: 16px;
+    background: rgba(8,8,10,.48); border: 1px solid rgba(255,255,255,.1);
+  }
+  .veil-pct {
+    font-size: 22px; font-weight: 650; letter-spacing: -.04em; color: #fff; line-height: 1;
+  }
+  .veil-note { font-size: 11px; color: var(--dim) }
+
+  .dock { padding: 0 16px 18px; display: flex; flex-direction: column; align-items: center; gap: 10px; min-width: 0 }
+  .composer {
+    width: min(860px, 100%); background: #111112; border: 1px solid var(--line);
+    border-radius: 28px; padding: 10px 10px 12px; box-shadow: 0 20px 60px rgba(0,0,0,.45);
+  }
+  .composer-top { display: flex; align-items: center; gap: 8px; padding: 4px 6px 8px; flex-wrap: wrap }
+  .seg { display: inline-flex; background: #0a0a0b; border: 1px solid var(--line); border-radius: 999px; padding: 3px }
+  .seg button {
+    background: transparent; border: none; color: var(--dim); padding: 6px 10px; border-radius: 999px;
+    font-size: 12px; font-weight: 600; white-space: nowrap;
+  }
+  .seg button.on { background: #fff; color: #111 }
+  .chips { display: flex; gap: 4px }
+  .chips button, .dur button {
+    background: transparent; border: 1px solid transparent; color: var(--dim);
+    padding: 5px 9px; border-radius: 8px; font-size: 11.5px; font-weight: 600;
+  }
+  .chips button.on, .dur button.on { color: var(--ink); background: #1c1c1f; border-color: var(--line) }
+  .aspect-wrap { position: relative; margin-left: auto }
+  .aspect-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: transparent; border: 1px solid transparent; color: var(--dim);
+    padding: 5px 9px; border-radius: 8px; font-size: 11.5px; font-weight: 600;
+  }
+  .aspect-btn:hover, .aspect-btn.open {
+    color: var(--ink); background: #1c1c1f; border-color: var(--line);
+  }
+  .aspect-mini {
+    width: 18px; height: 18px; display: grid; place-items: center; flex-shrink: 0;
+  }
+  .aspect-mini i, .aspect-frame i {
+    display: block; border: 1.5px solid currentColor; border-radius: 3px;
+    background: rgba(255,255,255,.06);
+  }
+  .aspect-mini i.auto, .aspect-frame i.auto { border-style: dashed }
+  .aspect-pop {
+    position: absolute; bottom: calc(100% + 8px); right: 0;
+    background: #141416; border: 1px solid var(--line); border-radius: 16px;
+    padding: 12px 12px 10px; z-index: 30;
+    box-shadow: 0 18px 50px rgba(0,0,0,.55);
+    display: flex; gap: 4px; align-items: flex-end;
+  }
+  .aspect-pop[hidden] { display: none }
+  .aspect-opt {
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+    gap: 7px; min-width: 52px; padding: 8px 6px 6px;
+    background: transparent; border: 1px solid transparent; border-radius: 12px;
+    color: var(--dim); font-size: 11px; font-weight: 650;
+  }
+  .aspect-opt:hover { color: var(--ink); background: #1c1c1f }
+  .aspect-opt.on { color: var(--ink); border-color: var(--line); background: #1c1c1f }
+  .aspect-cell { width: 40px; height: 40px; display: grid; place-items: end center; }
+  .size-row {
+    display: flex; align-items: center; gap: 10px; padding: 2px 8px 8px;
+  }
+  .size-row label { font-size: 11px; color: var(--dim); font-weight: 600; flex-shrink: 0 }
+  .size-row input[type=range] {
+    flex: 1; min-width: 80px; accent-color: var(--accent); height: 4px;
+  }
+  .mp-num {
+    width: 56px; height: 28px; background: #1c1c1f; border: 1px solid var(--line);
+    border-radius: 8px; color: var(--ink); text-align: center; font-size: 12px; font-weight: 600;
+  }
+  .mp-num:focus { outline: none; border-color: #3a3a3d }
+  .size-readout { font-size: 11px; color: var(--faint); font-weight: 600; white-space: nowrap }
+  .stage-actions {
+    position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%);
+    display: none; gap: 8px; z-index: 6;
+  }
+  .stage-actions.show { display: flex }
+  .stage-actions button {
+    background: rgba(12,12,14,.82); border: 1px solid rgba(255,255,255,.14);
+    color: #fff; border-radius: 999px; padding: 8px 14px; font-size: 12.5px; font-weight: 650;
+    backdrop-filter: blur(10px);
+  }
+  .stage-actions button:hover { border-color: #fff }
+  .nsfw-chip {
+    background: transparent; border: 1px solid var(--line); color: var(--dim);
+    padding: 5px 10px; border-radius: 8px; font-size: 11.5px; font-weight: 700; letter-spacing: .04em;
+  }
+  .nsfw-chip.on { color: #111; background: var(--accent); border-color: var(--accent) }
+  .scene-lora-chips { display: none; align-items: center; gap: 6px; flex-wrap: wrap }
+  .scene-lora-chips.show { display: flex }
+  .scene-chip { letter-spacing: 0; font-weight: 650 }
+  .film-clip-lora {
+    margin-left: 4px; font-size: 11px; color: var(--dim); font-weight: 650;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .film-clip-lora select {
+    background: #1c1c1f; border: 1px solid var(--line); color: var(--ink);
+    border-radius: 8px; padding: 3px 6px; font-size: 11px; font-weight: 650;
+  }
+  .dur { display: none; align-items: center; gap: 6px }
+  .dur.show { display: flex }
+  .dur-input {
+    width: 48px; height: 28px; background: #1c1c1f; border: 1px solid var(--line);
+    border-radius: 8px; color: var(--ink); text-align: center; font-size: 12.5px; font-weight: 600;
+  }
+  .dur-input:focus { outline: none; border-color: #3a3a3d }
+  .dur-unit { font-size: 11px; color: var(--dim); font-weight: 600 }
+
+  .row { display: flex; gap: 8px; align-items: stretch }
+  .attach {
+    width: 72px; flex-shrink: 0; border: 1px dashed #2e2e32; border-radius: 16px;
+    display: none; align-items: center; justify-content: center; text-align: center;
+    color: var(--faint); font-size: 10px; position: relative; overflow: hidden; background: #0c0c0d;
+  }
+  .attach.show { display: flex }
+  .attach img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover }
+  .attach .x {
+    position: absolute; top: 4px; right: 4px; z-index: 2; width: 18px; height: 18px; border-radius: 50%;
+    border: none; background: rgba(0,0,0,.65); color: #fff; display: none; font-size: 12px; line-height: 1;
+  }
+  .attach.filled .x { display: block }
+  .attach.filled .hint { display: none }
+  textarea.idea {
+    flex: 1; resize: none; height: 72px; background: transparent; border: none; color: var(--ink);
+    font-size: 15px; line-height: 1.45; padding: 10px 8px; font-family: inherit;
+  }
+  textarea.idea:focus { outline: none }
+  textarea.idea::placeholder { color: var(--faint) }
+  .spark, .go, .stop {
+    width: 48px; flex-shrink: 0; border: none; border-radius: 16px; font-size: 18px;
+    display: grid; place-items: center;
+  }
+  .spark { background: #1c1c1f; color: var(--accent); border: 1px solid var(--line) }
+  .spark:hover { background: #242428 }
+  .rewriter-pick {
+    flex: 0 1 168px; max-width: 176px; min-width: 118px; height: 48px;
+    background: #1c1c1f; border: 1px solid var(--line); color: var(--ink);
+    border-radius: 16px; font-size: 11px; font-weight: 650; font-family: inherit;
+    padding: 0 22px 0 10px; color-scheme: dark; -webkit-appearance: none; appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path fill='%239a9a9d' d='M1 1.2l5 5 5-5' stroke='%239a9a9d' stroke-width='1.2' fill='none'/></svg>");
+    background-repeat: no-repeat; background-position: right 10px center;
+  }
+  .rewriter-pick:focus { outline: none; border-color: #3a3a3d }
+  .rewriter-pick option { background: #141416; color: var(--ink) }
+  .film-dock .rewriter-pick {
+    height: 32px; border-radius: 10px; margin-right: auto; max-width: 200px;
+  }
+  .go { background: #fff; color: #111; font-weight: 700 }
+  .go:hover { filter: brightness(1.06) }
+  .go:disabled { background: #2a2a2c; color: var(--faint); cursor: not-allowed }
+  .stop {
+    display: none; background: var(--bad); color: #fff; font-weight: 700;
+  }
+  .stop.show { display: grid }
+  .hint-row { width: min(860px, 100%); display: flex; justify-content: space-between; color: var(--faint); font-size: 11px; padding: 0 8px }
+
+  .rail-btn {
+    flex: 0 0 auto; width: 32px; height: 32px; border-radius: 10px;
+    background: rgba(12,12,14,.82); border: 1px solid rgba(255,255,255,.14);
+    color: #fff; display: grid; place-items: center; padding: 0;
+  }
+  .rail-btn:hover { border-color: #fff }
+  .rail-btn svg { display: block; width: 16px; height: 16px }
+  .strip-wrap {
+    flex: 0 0 auto; width: 86px; height: 100%; min-height: 0; min-width: 0;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    padding: 10px 8px 12px; z-index: 5;
+  }
+  body.rail-off .strip { display: none }
+  body.rail-off .strip-wrap { width: 48px; padding-left: 8px; padding-right: 8px }
+  .live-preview {
+    display: block; max-width: min(860px, 100%); max-height: calc(100vh - 280px);
+    width: auto; height: auto; border-radius: 18px; background: #111;
+    object-fit: contain; object-position: center;
+  }
+  .live-preview[hidden] { display: none !important }
+
+  .icon-btn.film-chip { width: auto; padding: 0 12px; font-size: 12px; font-weight: 650 }
+  .icon-btn.film-chip.on { color: #111; background: var(--accent); border-color: var(--accent) }
+  .film-board {
+    display: none; background: #111112; border-right: 1px solid var(--line); z-index: 6;
+    min-height: 0; overflow: hidden; flex-direction: column;
+  }
+  body.film-on .app {
+    grid-template-columns: 320px minmax(0, 1fr);
+    grid-template-rows: 52px 1fr auto;
+  }
+  body.film-on .film-board {
+    display: flex; grid-column: 1; grid-row: 1 / -1;
+  }
+  body.film-on .top, body.film-on .stage, body.film-on .dock { grid-column: 2; min-width: 0 }
+  body.film-on .stage {
+    display: flex; flex-direction: row; align-items: stretch; justify-content: flex-start;
+    padding: 0 48px 0 0;
+  }
+  body.film-on .frame { margin: 12px auto }
+  body.film-on #modeSeg { display: none }
+  body.film-on #refStrip { display: none !important }
+  body.film-on .composer .row { display: none !important }
+  body.film-on #dur { display: none !important; }
+  body.film-on .film-dock { display: flex }
+  .film-board .sheet-head { flex-shrink: 0 }
+  .film-board .body {
+    flex: 1; min-height: 0; overflow-y: auto; padding: 14px 16px 20px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .film-dock {
+    display: none; align-items: center; justify-content: flex-end; gap: 8px;
+    padding: 4px 6px 2px; flex-wrap: wrap; width: 100%; min-width: 0; flex: 1 1 auto;
+  }
+  .film-dock .ghost-mini, .film-dock button {
+    background: #1c1c1f; border: 1px solid var(--line); color: var(--ink);
+    border-radius: 10px; padding: 7px 12px; font-size: 12px; font-weight: 650;
+  }
+  .film-dock .primary { background: #fff; color: #111; border-color: #fff }
+  .film-bible label, .film-clip label {
+    display: block; font-size: 10px; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--faint); margin-bottom: 4px;
+  }
+  .film-clip label.film-field-shot { color: #c8c8cc; }
+  .film-clip label.film-field-dialogue { color: var(--accent); margin-top: 4px; }
+  .film-clip label.film-field-sound { color: #8a8a90; }
+  .film-bible textarea, .film-clip textarea {
+    width: 100%; min-height: 64px; resize: vertical; background: #0c0c0d;
+    border: 1px solid var(--line); border-radius: 12px; color: var(--ink);
+    font: inherit; font-size: 12.5px; line-height: 1.4; padding: 8px 10px;
+  }
+  .film-clip textarea.film-audio { min-height: 38px; margin-bottom: 6px; }
+  .film-bible textarea:focus, .film-clip textarea:focus { outline: none; border-color: #3a3a3d }
+  .film-refs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0 }
+  .film-ref {
+    height: 88px; border: 1px dashed #2e2e32; border-radius: 12px; background: #0c0c0d;
+    position: relative; overflow: hidden; cursor: pointer; color: var(--faint);
+    font-size: 11px; display: grid; place-items: center; text-align: center; padding: 6px;
+  }
+  .film-ref img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover }
+  .film-ref.filled .hint { display: none }
+  .film-ref .x {
+    position: absolute; top: 4px; right: 4px; z-index: 2; width: 18px; height: 18px;
+    border-radius: 50%; border: none; background: rgba(0,0,0,.65); color: #fff; display: none;
+  }
+  .film-ref.filled .x { display: block }
+  .film-board select,
+  .film-board input[type="text"],
+  .film-board input[type="number"] {
+    background: #0c0c0d; border: 1px solid var(--line); color: var(--ink);
+    color-scheme: dark; font-family: inherit;
+  }
+  .film-board select {
+    -webkit-appearance: none; appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path fill='%239a9a9d' d='M1 1.2l5 5 5-5' stroke='%239a9a9d' stroke-width='1.2' fill='none'/></svg>");
+    background-repeat: no-repeat; background-position: right 8px center; padding-right: 22px;
+  }
+  .film-board select option { background: #0c0c0d; color: var(--ink) }
+  .film-char-meta { display: flex; gap: 6px; margin-top: 6px; align-items: center; min-width: 0; flex-wrap: wrap; }
+  .film-char-meta select, .film-char-meta input[type="text"] {
+    flex: 1; min-width: 0; height: 26px; background: #0c0c0d; border: 1px solid var(--line);
+    color: var(--ink); border-radius: 8px; font-size: 11px; padding: 0 22px 0 6px;
+  }
+  .film-char-meta input.film-char-tag { flex: 1 1 100%; padding: 0 8px; }
+  .film-char-meta button {
+    flex: 0 0 auto; height: 26px; min-width: 26px; padding: 0 8px;
+    background: #0c0c0d; border: 1px solid var(--line); color: var(--ink);
+    border-radius: 8px; font-size: 11px; font-weight: 650;
+  }
+  .film-row-btns { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0 }
+  .film-row-btns button, .film-clip-tools .sparklet {
+    background: transparent; border: 1px solid var(--line); color: var(--dim);
+    border-radius: 8px; padding: 5px 8px; font-size: 11px; font-weight: 650;
+  }
+  .film-stories {
+    display: flex; gap: 6px; align-items: center; margin: 6px 0; min-width: 0;
+    flex-wrap: wrap;
+  }
+  .film-stories select, #filmWipPick {
+    flex: 1 1 140px; min-width: 0; height: 28px;
+    background: #0c0c0d; border: 1px solid var(--line); color: var(--ink);
+    border-radius: 8px; font-size: 11px; padding: 0 22px 0 8px; color-scheme: dark;
+  }
+  .film-stories button, #filmSaveWip, #filmLoadWip, #filmExportWip, #filmImportWip {
+    flex: 0 0 auto; height: 28px; padding: 0 10px; white-space: nowrap;
+    background: #0c0c0d; border: 1px solid var(--line); color: var(--ink);
+    border-radius: 8px; font-size: 11px; font-weight: 650;
+  }
+  .film-clip-dur { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--dim) }
+  .film-clip-dur input {
+    width: 44px; background: #0c0c0d; border: 1px solid var(--line); color: var(--ink);
+    border-radius: 8px; padding: 3px 5px;
+  }
+  .stage-nav {
+    position: absolute; top: 50%; transform: translateY(-50%); z-index: 10;
+    width: 36px; height: 48px; border: 1px solid var(--line); border-radius: 10px;
+    background: rgba(17,17,18,.82); color: var(--ink); font-size: 18px; display: none;
+    pointer-events: auto; cursor: pointer;
+  }
+  .stage.has-hist .stage-nav { display: grid; place-items: center }
+  .stage-nav[hidden] { display: none !important }
+  #histPrev { left: 12px }
+  body:not(.rail-off) #histPrev { left: 94px }
+  #histNext { right: 12px }
+  .film-char { display: flex; flex-direction: column; min-width: 0 }
+  #refStrip {
+    display: none; padding: 0 6px 6px; align-items: center; gap: 6px;
+    flex-wrap: nowrap; flex-direction: row;
+    overflow-x: auto; overflow-y: hidden;
+    min-width: 0; width: 100%; scrollbar-width: thin;
+  }
+  body.refs-on #refStrip { display: flex }
+  #refStrip::-webkit-scrollbar { height: 6px; width: 0 }
+  .ref-slots, .ref-strip-bar { display: contents }
+  #refStrip .film-char {
+    display: flex; flex-direction: row; align-items: center; gap: 6px;
+    flex: 0 0 auto; min-width: 0;
+    padding: 3px 5px 3px 3px; background: #0c0c0d; border: 1px solid var(--line); border-radius: 10px;
+  }
+  #refStrip .film-ref {
+    width: 44px; height: 44px; flex: 0 0 44px; border-radius: 8px; padding: 0; font-size: 15px;
+  }
+  #refStrip .film-char-meta {
+    display: flex; flex-wrap: nowrap; align-items: center; gap: 5px; margin: 0; min-width: 0;
+  }
+  #refStrip .film-char-meta select,
+  #refStrip .film-char-meta input[type="text"] {
+    flex: 0 0 auto; min-width: 0; height: 28px; background: #141416; border: 1px solid var(--line);
+    color: var(--ink); border-radius: 8px; font-size: 11.5px; color-scheme: dark; font-family: inherit;
+  }
+  #refStrip .film-char-meta input.film-char-tag {
+    flex: 0 1 110px; width: 110px; min-width: 72px; max-width: 110px; padding: 0 8px;
+  }
+  #refStrip .film-char-meta select {
+    -webkit-appearance: none; appearance: none;
+    flex: 0 0 86px; width: 86px; min-width: 86px; padding: 0 20px 0 8px;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path fill='%239a9a9d' d='M1 1.2l5 5 5-5' stroke='%239a9a9d' stroke-width='1.2' fill='none'/></svg>");
+    background-repeat: no-repeat; background-position: right 7px center; background-color: #141416;
+  }
+  #refStrip .film-char-meta select option { background: #141416; color: var(--ink) }
+  #refStrip .film-char-meta button {
+    flex: 0 0 auto; height: 28px; min-width: 28px; padding: 0 8px;
+    background: #141416; border: 1px solid var(--line); color: var(--ink);
+    border-radius: 8px; font-size: 12px; font-weight: 650;
+  }
+  .ref-strip-bar button {
+    flex: 0 0 auto; height: 28px; padding: 0 10px; white-space: nowrap;
+    background: #0c0c0d; border: 1px solid var(--line); color: var(--ink);
+    border-radius: 8px; font-size: 11px; font-weight: 650;
+  }
+  .film-opt {
+    display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--dim); margin: 6px 0;
+  }
+  .film-opt input { accent-color: var(--accent) }
+  .film-note { font-size: 11px; color: var(--faint); line-height: 1.4; margin: 0 }
+  .film-clip {
+    background: #0c0c0d; border: 1px solid var(--line); border-radius: 14px; padding: 10px;
+  }
+  .film-clip.on { border-color: #3a3a3d }
+  .film-clip.running { border-color: rgba(245,165,36,.45) }
+  .film-clip.done { border-color: rgba(52,199,89,.35) }
+  .film-clip-head {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+  }
+  .film-clip-head strong { font-size: 12px; font-weight: 650 }
+  .film-clip-head .st { margin-left: auto; font-size: 10px; color: var(--faint); text-transform: none }
+  .film-clip-thumb {
+    width: 100%; height: 72px; border-radius: 10px; background: #0c0c0d; margin-bottom: 8px;
+    overflow: hidden; display: none;
+  }
+  .film-clip-thumb.show { display: block }
+  .film-clip-thumb img, .film-clip-thumb video {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
+  .film-still-drop {
+    min-height: 56px; border: 1px dashed #2e2e32; border-radius: 10px;
+    background: #0a0a0b; margin-bottom: 8px; padding: 8px; color: var(--faint);
+    font-size: 11px; line-height: 1.35; text-align: center;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    cursor: pointer; position: relative; overflow: hidden;
+  }
+  .film-still-drop.filled { min-height: 64px; }
+  .film-still-drop img {
+    width: 56px; height: 56px; object-fit: cover; border-radius: 8px; flex-shrink: 0;
+  }
+  .film-still-drop .hint { flex: 1; }
+  .film-still-drop.drop-over {
+    outline: 2px dashed var(--accent); outline-offset: -2px;
+    background: rgba(245,165,36,.08); border-color: var(--accent);
+  }
+  .film-frame-dlg {
+    position: fixed; inset: 0; z-index: 50; background: rgba(0,0,0,.72);
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  .film-frame-dlg[hidden] { display: none !important }
+  .film-frame-card {
+    width: min(520px, 96vw); background: #141416; border: 1px solid var(--line);
+    border-radius: 16px; padding: 14px 16px 16px; box-shadow: 0 16px 48px rgba(0,0,0,.55);
+  }
+  .film-frame-card h3 { margin: 0 0 6px; font-size: 15px; letter-spacing: -.02em }
+  .film-frame-card .who { margin: 0 0 12px; font-size: 12px; color: var(--dim); line-height: 1.4 }
+  .film-frame-card video {
+    width: 100%; max-height: 280px; background: #0c0c0d; border-radius: 12px; display: block;
+  }
+  .film-frame-card .video-seek { margin: 8px 0 12px }
+  .film-frame-actions { display: flex; gap: 8px; flex-wrap: wrap }
+  .film-frame-actions button {
+    background: #0c0c0d; border: 1px solid var(--line); color: var(--ink);
+    border-radius: 10px; padding: 8px 12px; font-size: 12px; font-weight: 650;
+  }
+  .film-frame-actions .primary { background: #fff; color: #111; border-color: #fff }
+  .film-clip-tools { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap }
+  .film-clip-tools button, .film-add {
+    background: transparent; border: 1px solid var(--line); color: var(--dim);
+    border-radius: 8px; padding: 5px 8px; font-size: 11px; font-weight: 650;
+  }
+  .film-add { width: 100%; margin-top: 2px }
+  .attach.drop-over, .film-clip.drop-over, .film-ref.drop-over, .stage.drop-over {
+    outline: 2px dashed var(--accent); outline-offset: -2px;
+    background: rgba(245,165,36,.08);
+  }
+  .film-clip.drop-over { border-color: var(--accent) }
+  .film-vid-pick {
+    position: fixed; z-index: 40; width: min(320px, 92vw); max-height: 360px;
+    overflow: auto; background: #141416; border: 1px solid var(--line);
+    border-radius: 12px; padding: 8px; box-shadow: 0 12px 40px rgba(0,0,0,.5);
+  }
+  .film-vid-pick[hidden] { display: none !important }
+  .film-vid-pick-head { font-size: 11px; color: var(--dim); padding: 4px 6px 8px }
+  .film-vid-row {
+    display: block; width: 100%; text-align: left; background: transparent;
+    border: none; color: var(--ink); padding: 8px; border-radius: 8px; font-size: 12px;
+  }
+  .film-vid-row:hover { background: #1c1c1f }
+  .film-vid-row .fn { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+  .film-vid-row .meta { color: var(--faint); font-size: 10px; margin-top: 2px }
+  .film-vid-empty { color: var(--faint); font-size: 12px; padding: 8px 6px }
+  .film-vid-browse {
+    width: 100%; margin-top: 6px; background: #0c0c0d; border: 1px solid var(--line);
+    color: var(--ink); border-radius: 8px; padding: 7px 8px; font-size: 11px; font-weight: 650;
+  }
+  .film-dur { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--dim) }
+  .film-dur input {
+    width: 52px; background: #0c0c0d; border: 1px solid var(--line); color: var(--ink);
+    border-radius: 8px; padding: 4px 6px;
+  }
+
+  .neg-row {
+    display: flex; align-items: center; gap: 8px; padding: 0 8px 8px;
+  }
+  .neg-toggle {
+    background: transparent; border: 1px solid var(--line); color: var(--dim);
+    padding: 5px 10px; border-radius: 8px; font-size: 11.5px; font-weight: 650;
+  }
+  .neg-toggle.on { color: var(--ink); background: #1c1c1f; border-color: #3a3a3d }
+  .neg-pick, .neg-name {
+    height: 28px; background: #1c1c1f; border: 1px solid var(--line); border-radius: 8px;
+    color: var(--ink); font-size: 12px; padding: 0 8px;
+  }
+  .neg-pick { min-width: 140px }
+  .neg-row .ghost-mini {
+    background: transparent; border: 1px solid var(--line); color: var(--dim);
+    border-radius: 8px; padding: 4px 8px; font-size: 11.5px; font-weight: 650;
+  }
+  textarea.neg-box {
+    display: none; width: calc(100% - 16px); margin: 0 8px 8px; resize: none; height: 56px;
+    background: #0c0c0d; border: 1px solid var(--line); border-radius: 12px; color: var(--ink);
+    font-size: 13px; line-height: 1.4; padding: 8px 10px; font-family: inherit;
+  }
+  textarea.neg-box.show { display: block }
+  textarea.neg-box:focus { outline: none; border-color: #3a3a3d }
+  .strip {
+    flex: 1 1 auto; min-width: 0; min-height: 0; width: 64px;
+    overflow-x: hidden; overflow-y: auto;
+    display: flex; flex-direction: column; flex-wrap: nowrap;
+    align-items: stretch; gap: 6px;
+    scrollbar-width: thin; scrollbar-color: #2a2a2c transparent;
+  }
+  .strip::-webkit-scrollbar { width: 6px; height: 0 }
+  .strip::-webkit-scrollbar-thumb { background: #2a2a2c; border-radius: 8px }
+  .strip .item {
+    flex: 0 0 auto; flex-shrink: 0; width: 64px; height: 64px;
+    border-radius: 10px; overflow: hidden; border: 1px solid var(--line);
+    cursor: pointer; background: #111; position: relative;
+  }
+  .strip .item.active { outline: 1px solid #fff }
+  .strip .item .thumb {
+    aspect-ratio: 1; width: 64px; height: 64px; overflow: hidden; background: #111; position: relative;
+  }
+  .strip .item .thumb img, .strip .item .thumb video {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
+  .strip .item.pending .thumb {
+    display: grid; place-items: center; background: #161618;
+  }
+  .strip .pending-pct { font-size: 13px; font-weight: 650; color: #fff }
+  .strip .item.queued .pending-pct { color: var(--dim) }
+  .strip .item.running .thumb::after {
+    content: ""; position: absolute; inset: 6px; border: 2px solid transparent;
+    border-top-color: rgba(255,255,255,.7); border-radius: 50%;
+    animation: yi-spin .8s linear infinite; pointer-events: none;
+  }
+  @keyframes yi-spin { to { transform: rotate(360deg) } }
+  .strip .del, .gcell .del {
+    position: absolute; top: 4px; right: 4px; z-index: 2; width: 20px; height: 20px;
+    border: none; border-radius: 50%; background: rgba(0,0,0,.72); color: #fff;
+    font-size: 13px; line-height: 1; display: none; align-items: center; justify-content: center;
+  }
+  .strip .item:hover .del, .gcell:hover .del, .gcell:hover .use { display: flex }
+  .gcell .use {
+    position: absolute; left: 8px; bottom: 8px; z-index: 2; display: none;
+    border: none; border-radius: 999px; background: rgba(0,0,0,.78); color: #fff;
+    font-size: 11px; font-weight: 650; padding: 4px 8px;
+  }
+  .ggrid {
+    padding: 14px 16px 18px; overflow-y: auto; display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 12px;
+    flex: 1; min-height: 0; align-content: start;
+  }
+  .ggrid[hidden], .hist-list[hidden] { display: none !important }
+  .ggrid .lib-empty { grid-column: 1 / -1 }
+  .gcell {
+    position: relative; aspect-ratio: 1; border-radius: 14px; overflow: hidden;
+    border: 1px solid var(--line); background: #0c0c0d; cursor: pointer;
+  }
+  .gcell:hover { border-color: #3a3a3d }
+  .gcell img, .gcell video { width: 100%; height: 100%; object-fit: cover; display: block }
+  .gcell .kind {
+    position: absolute; left: 8px; top: 8px; z-index: 2;
+    font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+    padding: 3px 7px; border-radius: 999px; background: rgba(0,0,0,.7); color: #fff;
+  }
+  .gcell .cap {
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 1;
+    padding: 36px 10px 10px; background: linear-gradient(transparent, rgba(0,0,0,.88));
+    opacity: 0; transition: opacity .15s;
+  }
+  .gcell:hover .cap, .gcell:focus-within .cap { opacity: 1 }
+  .gcell .cap .p {
+    font-size: 12px; line-height: 1.35; max-height: 2.7em; overflow: hidden;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  }
+  .gcell .cap .m { margin-top: 4px; font-size: 11px; color: #b8b8bc }
+  .gcell.broke { display: flex; align-items: center; justify-content: center; color: var(--faint); font-size: 11px; text-align: center; padding: 12px }
+  .hist-list { padding: 12px 16px 18px; overflow-y: auto; flex: 1; min-height: 0 }
+  .hist-row {
+    display: grid; grid-template-columns: 96px 1fr auto; gap: 12px; align-items: center;
+    padding: 10px; border: 1px solid var(--line); border-radius: 14px; margin-bottom: 8px;
+    background: #0c0c0d; cursor: pointer;
+  }
+  .hist-row:hover { border-color: #3a3a3d }
+  .hist-row img, .hist-row video, .hist-row .ph {
+    width: 96px; height: 96px; object-fit: cover; border-radius: 10px; background: #111;
+  }
+  .hist-row .ph {
+    display: flex; align-items: center; justify-content: center;
+    color: var(--faint); font-size: 11px; text-align: center; padding: 8px; border: 1px dashed var(--line);
+  }
+  .hist-row .t { font-size: 13px; line-height: 1.4; max-height: 3.9em; overflow: hidden }
+  .hist-row .st { font-size: 11.5px; color: var(--dim); margin-top: 6px }
+  .hist-row .gone { color: var(--accent) }
+  .hist-row .acts { display: flex; flex-direction: column; gap: 6px }
+  .hist-row .acts .ghost { min-width: 72px }
+  .lib-empty { padding: 56px 20px; text-align: center; color: var(--faint); font-size: 13px; line-height: 1.5 }
+  .lib-empty b { display: block; color: var(--ink); font-size: 15px; margin-bottom: 6px }
+
+  .overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.55); display: none; z-index: 40;
+    backdrop-filter: blur(8px);
+  }
+  .overlay.on { display: block }
+  .sheet {
+    position: fixed; inset: 8vh 0 auto; margin: 0 auto; width: min(880px, 94vw);
+    max-height: 82vh; background: #111112; border: 1px solid var(--line); border-radius: 22px;
+    z-index: 41; display: none; flex-direction: column; overflow: hidden;
+  }
+  .sheet.on { display: flex }
+  .sheet-head {
+    display: flex; align-items: flex-start; justify-content: space-between; padding: 16px 18px;
+    border-bottom: 1px solid var(--line); gap: 12px;
+  }
+  .sheet-head h2 { margin: 0; font-size: 16px; letter-spacing: -.02em }
+  .sheet-head .who { margin: 4px 0 0; font-size: 12px; color: var(--dim); line-height: 1.4; max-width: 420px }
+  #libSheet { width: min(1040px, 96vw); max-height: 86vh }
+  .lib-bar {
+    display: flex; gap: 10px; align-items: center; padding: 10px 16px; flex-wrap: wrap;
+    border-bottom: 1px solid var(--line); background: #0d0d0e;
+  }
+  .lib-bar .txt { flex: 1; min-width: 0 }
+  .lib-bar .seg { flex-shrink: 0 }
+  .ghost {
+    background: #1c1c1f; border: 1px solid var(--line); border-radius: 10px; padding: 7px 12px; font-size: 12px;
+    color: inherit; text-decoration: none; display: inline-block;
+  }
+  .ghost.on { color: var(--good); border-color: rgba(52,199,89,.4) }
+  .ghost:disabled { opacity: .4; cursor: default }
+  .conn-note { color: var(--dim); font-size: 12px; line-height: 1.45; margin: 0 0 12px }
+  .conn-note.ok { color: var(--good) }
+  .conn-note.err { color: var(--bad) }
+  .pack-detail { padding: 16px 18px 22px; overflow-y: auto; display: none; flex-direction: column; gap: 12px; flex: 1; min-height: 0 }
+  .pack-detail.on { display: flex }
+  #packList { display: flex; flex-direction: column; min-height: 0; flex: 1; overflow: hidden }
+  #packList .grid { flex: 1; overflow-y: auto }
+  .grid { padding: 16px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px }
+  .card {
+    text-align: left; background: #0c0c0d; border: 1px solid var(--line); border-radius: 16px; padding: 14px;
+  }
+  .card:hover { border-color: #3a3a3d }
+  .card.on { border-color: #fff }
+  .card.off { opacity: .85 }
+  .card .t { font-weight: 650; margin-bottom: 4px }
+  .card .b { color: var(--dim); font-size: 12px; line-height: 1.4; min-height: 34px }
+  .card .meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; align-items: center }
+  .badge { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+    padding: 2px 6px; border-radius: 6px; border: 1px solid var(--line); color: var(--dim) }
+  .badge.ready { color: var(--good); border-color: rgba(52,199,89,.3) }
+  .badge.wait { color: var(--accent); border-color: rgba(245,165,36,.3) }
+  .badge.def { color: #fff; border-color: rgba(245,165,36,.45); background: rgba(245,165,36,.12) }
+  .mgr-note { padding: 12px 16px 0; color: var(--dim); font-size: 12px; line-height: 1.45 }
+  .mgr-note code { color: var(--accent); font-size: 11px }
+  .pack-detail.on { display: flex }
+  .asset {
+    display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; align-items: center;
+    background: #0c0c0d; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px;
+  }
+  .asset .nm { font-size: 13px; font-weight: 650 }
+  .asset .fn, .asset .sub { font-size: 11.5px; color: var(--dim); line-height: 1.4 }
+  .asset .sub code, .asset .fn code { font-size: 11px; color: var(--accent) }
+  .st { font-size: 11px; font-weight: 650; text-transform: capitalize }
+  .st.installed, .st.done { color: var(--good) }
+  .st.missing, .st.error { color: var(--accent) }
+  .st.queued, .st.running { color: var(--dim) }
+  .bar { height: 4px; background: #1c1c1f; border-radius: 99px; overflow: hidden; grid-column: 1 / -1 }
+  .bar > i { display: block; height: 100%; width: 0; background: var(--accent) }
+  .def-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center }
+  .def-row span { font-size: 11px; color: var(--dim); font-weight: 700; text-transform: uppercase; letter-spacing: .06em }
+  .def-btn {
+    background: #0c0c0d; border: 1px solid var(--line); border-radius: 999px;
+    padding: 6px 12px; font-size: 12px; font-weight: 650; color: var(--dim);
+  }
+  .def-btn.on { color: #111; background: var(--accent); border-color: var(--accent) }
+  .setup {
+    position: fixed; inset: 0; z-index: 90; background: rgba(0,0,0,.78);
+    display: none; align-items: center; justify-content: center; padding: 24px;
+    backdrop-filter: blur(10px);
+  }
+  .setup.on { display: flex }
+  .setup-card {
+    width: min(520px, 100%); background: #111112; border: 1px solid var(--line);
+    border-radius: 20px; padding: 22px 22px 20px;
+  }
+  .setup-card h2 { margin: 0 0 8px; font-size: 20px; letter-spacing: -.03em }
+  .setup-card p { color: var(--dim); font-size: 13px; line-height: 1.5; margin: 0 0 16px }
+  .setup-actions { display: flex; gap: 8px; margin-top: 14px }
+  .setup-actions .goish {
+    flex: 1; background: #fff; color: #111; border: none; border-radius: 12px;
+    padding: 10px; font-weight: 700; font-size: 13px;
+  }
+  .path-row { display: flex; gap: 8px }
+  .path-row .txt { flex: 1 }
+  .newfiles { padding: 0 16px 14px; color: var(--dim); font-size: 12px }
+  .newfiles div { margin-top: 4px; color: var(--faint); font-size: 11.5px }
+
+  .drawer {
+    position: fixed; top: 0; right: 0; height: 100vh; width: min(440px, 96vw);
+    background: #111112; border-left: 1px solid var(--line); z-index: 42;
+    transform: translateX(100%); transition: transform .2s ease; display: flex; flex-direction: column;
+  }
+  .drawer.on { transform: translateX(0) }
+  .drawer .body { flex: 1; overflow-y: auto; padding: 14px 16px }
+  .field { margin-bottom: 12px }
+  .field label { display: block; font-size: 11px; color: var(--dim); margin-bottom: 5px }
+  select, .num, .txt {
+    width: 100%; background: #0c0c0d; border: 1px solid var(--line); color: var(--ink);
+    border-radius: 10px; padding: 8px 10px; font-size: 13px; font-family: inherit;
+  }
+  select:focus, .num:focus, .txt:focus { outline: none; border-color: #3a3a3d }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px }
+  .lora-row { display: grid; grid-template-columns: 1fr 64px 28px; gap: 6px; margin-bottom: 6px; align-items: center }
+  .rec { display: flex; align-items: center; gap: 8px; padding: 8px; background: #0c0c0d; border: 1px solid var(--line); border-radius: 10px; margin-bottom: 6px }
+  .rec input[type=checkbox] { accent-color: var(--accent) }
+  .rec .nm { flex: 1; font-size: 12.5px }
+  .add { width: 100%; background: transparent; border: 1px dashed #2e2e32; border-radius: 10px; color: var(--dim); padding: 8px; font-size: 12px }
+  .radio-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 4px }
+  .radio-row {
+    display: flex; align-items: flex-start; gap: 8px; padding: 8px 10px;
+    background: #0c0c0d; border: 1px solid var(--line); border-radius: 10px; cursor: pointer;
+  }
+  .radio-row input { margin-top: 2px; accent-color: var(--accent) }
+  .radio-row .nm { font-size: 12.5px; font-weight: 650 }
+  .radio-row .st { font-size: 11px; color: var(--dim); margin-top: 2px }
+  .save-prefs {
+    width: 100%; background: #fff; color: #111; border: none; border-radius: 12px;
+    padding: 10px; font-weight: 700; font-size: 13px; margin-top: 8px;
+  }
+  .sec { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); margin: 6px 0 4px }
+  .comfy-links { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 12px }
+  .comfy-links a { font-size: 12px }
+  .gear-home { display: flex; flex-direction: column; gap: 10px; padding-top: 8px }
+  .gear-tile {
+    text-align: left; background: #0c0c0d; border: 1px solid var(--line); border-radius: 14px;
+    padding: 16px 16px 14px; color: var(--ink);
+  }
+  .gear-tile:hover { border-color: #3a3a3d }
+  .gear-tile b { display: block; font-size: 14px; margin-bottom: 4px }
+  .gear-tile span { color: var(--dim); font-size: 12px; line-height: 1.4 }
+  .gear-back { margin-bottom: 12px }
+  .pref-select { width: 100% }
+
+  .toast {
+    position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(16px);
+    background: #1c1c1f; border: 1px solid var(--line); color: var(--ink); padding: 10px 16px;
+    border-radius: 12px; font-size: 13px; opacity: 0; transition: .2s; z-index: 80; pointer-events: none; max-width: 80vw;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0) }
+  .toast.err { border-color: var(--bad) }
+
+  .privacy-cover {
+    position: fixed; inset: 0; z-index: 100; background: #050506;
+    display: flex; align-items: flex-end; justify-content: center;
+  }
+  .privacy-cover[hidden] { display: none !important }
+  .privacy-cover img {
+    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  }
+  .privacy-cover img[hidden] { display: none !important }
+  .privacy-clock {
+    position: absolute; top: 12%; left: 0; right: 0; text-align: center;
+    font-size: clamp(42px, 8vw, 88px); font-weight: 500; letter-spacing: -.04em;
+    color: #fff; text-shadow: 0 8px 40px rgba(0,0,0,.55); pointer-events: none;
+  }
+  .privacy-unlock {
+    position: relative; z-index: 1; width: min(320px, 90vw); margin: 0 0 10vh;
+    background: rgba(12,12,14,.78); border: 1px solid rgba(255,255,255,.12);
+    border-radius: 18px; padding: 16px; backdrop-filter: blur(16px);
+  }
+  .privacy-unlock label { display: block; font-size: 11px; color: #9a9a9d; margin-bottom: 6px }
+  .privacy-unlock .pin-row { display: flex; gap: 8px }
+  .privacy-unlock input {
+    flex: 1; letter-spacing: .35em; text-align: center; font-size: 18px;
+  }
+  .privacy-err { color: var(--bad); font-size: 12px; margin: 8px 0 0 }
+  .privacy-preview {
+    width: 100%; height: 120px; object-fit: cover; border-radius: 12px;
+    border: 1px solid var(--line); background: #0c0c0d; margin-bottom: 8px;
+  }
+  .privacy-preview.empty { display: grid; place-items: center; color: var(--faint); font-size: 12px }
+  .privacy-preview[hidden], .privacy-cover[hidden], .privacy-cover img[hidden] { display: none !important }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="film-board" id="filmBoard">
+    <div class="sheet-head">
+      <div>
+        <h2>Film</h2>
+        <p class="who">Storyboard clips. One MiniMax run per card.</p>
+      </div>
+      <button class="ghost" id="closeFilm" type="button">Close</button>
+    </div>
+    <div class="body">
+      <div class="film-bible">
+        <label>Shared look</label>
+        <textarea id="filmBible" placeholder="Room, lighting, who they are. Stays on every clip."></textarea>
+        <div class="film-stories">
+          <select id="filmWipPick" title="Saved stories"><option value="">Saved stories</option></select>
+          <button type="button" id="filmSaveWip">Save</button>
+          <button type="button" id="filmLoadWip">Load</button>
+          <button type="button" id="filmExportWip" title="Download this story as JSON">Export</button>
+          <button type="button" id="filmImportWip" title="Load a story JSON from disk">Import</button>
+          <input type="file" id="filmImportFile" accept="application/json,.json" hidden />
+        </div>
+        <div class="film-refs" id="filmChars"></div>
+        <div class="film-row-btns">
+          <button type="button" id="filmAddChar">+ Character</button>
+          <button type="button" id="filmReset">Reset board</button>
+        </div>
+        <label class="film-opt"><input type="checkbox" id="filmContinue" checked /> Continue from last frame if this clip has no start still</label>
+        <div class="film-dur">Default length <input id="filmDuration" type="number" min="4" max="10" step="1" value="8" /> sec</div>
+        <p class="film-note" id="filmHint">A start still on a clip is that shot’s first frame. An empty start still continues from the previous clip. Generate film skips clips that already have a video.</p>
+      </div>
+      <div id="filmClips"></div>
+      <button type="button" class="film-add" id="filmAddClip">+ Clip</button>
+    </div>
+  </aside>
+  <header class="top">
+    <div class="brand"><span class="dot" id="brandDot" title="ComfyUI disconnected"></span> Your Imagination</div>
+    <div class="pack-pick" id="packPick">
+      <button type="button" class="pack-chip" id="packChip" title="Choose a model">
+        <span class="swatch" id="packSwatch">◈</span>
+        <span id="packName">Choose a model</span>
+        <span class="caret">▾</span>
+      </button>
+      <div class="pack-menu" id="packMenu" hidden></div>
+    </div>
+    <div class="top-right">
+      <button class="icon-btn film-chip" id="filmBtn" title="Film storyboard">Film</button>
+      <button class="icon-btn" id="privacyBtn" title="Cover the screen">◐</button>
+      <button class="icon-btn" id="openLib" title="Gallery and history">▦</button>
+      <button class="icon-btn" id="muteBtn" title="Mute">🔊</button>
+      <button class="icon-btn" id="openGear" title="Settings">⚙</button>
+    </div>
+  </header>
+
+  <main class="stage" id="stage">
+    <div class="strip-wrap" id="stripWrap">
+      <button type="button" class="rail-btn" id="railBtn" title="Hide recent images" aria-label="Hide recent images"></button>
+      <div class="strip" id="strip"></div>
+    </div>
+    <button type="button" class="stage-nav" id="histPrev" title="Previous in history">‹</button>
+    <button type="button" class="stage-nav" id="histNext" title="Next in history">›</button>
+    <div class="stage-main">
+    <div class="frame" id="frame">
+      <div class="placeholder" id="placeholder">
+        <h1>Your Imagination</h1>
+        <p>Pick a model, type what you want, generate.</p>
+      </div>
+      <img class="live-preview" id="livePreview" alt="" hidden />
+      <div class="veil" id="veil">
+        <div class="veil-chip">
+          <div class="veil-pct" id="veilPct">0%</div>
+          <div class="veil-note" id="veilNote">starting…</div>
+        </div>
+      </div>
+      <div class="stage-actions" id="stageActions">
+        <button type="button" id="useStill">Edit photo</button>
+        <button type="button" id="animateStill">Animate</button>
+      </div>
+    </div>
+    </div>
+  </main>
+
+  <div class="dock">
+    <div class="composer">
+      <div class="composer-top">
+        <div class="seg" id="modeSeg">
+          <button data-mode="image" class="on" title="Text to image">T2I</button>
+          <button data-mode="ref_image" title="Reference to image">R2I</button>
+          <button data-mode="video" title="Video">Video</button>
+          <button data-mode="edit" title="Edit">Edit</button>
+        </div>
+        <div class="aspect-wrap" id="aspectWrap">
+          <button type="button" class="aspect-btn" id="aspectBtn" title="Aspect ratio">
+            <span class="aspect-mini" id="aspectMini"><i></i></span>
+            <span id="aspectLabel">1:1</span>
+          </button>
+          <div class="aspect-pop" id="aspectPop" hidden></div>
+        </div>
+        <button class="nsfw-chip" id="nsfwChip" title="Load this pack's adult LoRAs and an uncensored prompt wrap">NSFW</button>
+        <div class="scene-lora-chips" id="sceneLoraChips" hidden>
+          <button type="button" class="nsfw-chip scene-chip" data-scene="masturbation" title="Per-clip solo masturbation LoRA. Turns Bunny off for this job.">Masturbation</button>
+          <button type="button" class="nsfw-chip scene-chip" data-scene="fingering" title="Per-clip fingering LoRA. Turns Bunny off for this job. Do not stack with Masturbation.">Fingering</button>
+          <button type="button" class="nsfw-chip scene-chip" data-scene="cowgirl" title="Per-clip cowgirl LoRA. Turns Bunny off for this job. Stays on I2V when you pick it.">Cowgirl</button>
+        </div>
+        <div class="dur" id="dur">
+          <input class="dur-input" id="duration" type="number" min="1" max="15" step="1" value="5" title="Clip length in seconds (1–15)" />
+          <span class="dur-unit">sec</span>
+        </div>
+      </div>
+      <div class="size-row" id="sizeRow">
+        <label>MPs Size</label>
+        <input type="range" id="mp" min="0.5" max="2" step="0.05" value="1.77" title="Megapixels (output size)" />
+        <input class="mp-num" id="mpNum" type="number" min="0.2" max="2" step="0.05" value="1.77" title="Megapixels" />
+        <span class="size-readout" id="sizeReadout">1328×1328 · 1.77MP</span>
+      </div>
+      <div class="neg-row" id="negRow">
+        <button type="button" class="neg-toggle" id="negToggle" title="Show or hide the negative prompt">Negative</button>
+        <select class="neg-pick" id="negPick" title="Saved negative prompts">
+          <option value="">Saved negatives</option>
+        </select>
+        <button type="button" class="ghost-mini" id="negSave" title="Save the current negative">Save</button>
+        <button type="button" class="ghost-mini" id="negDelete" title="Delete the selected saved negative">✕</button>
+      </div>
+      <textarea class="neg-box" id="neg" placeholder="What to avoid: blur, extra fingers, watermark…"></textarea>
+      <div class="ref-strip" id="refStrip">
+        <div class="ref-slots" id="refSlots"></div>
+        <div class="ref-strip-bar">
+          <button type="button" id="refAdd">+ Reference</button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="attach" id="attach">
+          <input type="file" id="initFile" accept="image/*" hidden />
+          <span class="hint">photo</span>
+          <button class="x" id="clearInit">×</button>
+        </div>
+        <textarea class="idea" id="idea" placeholder="Describe what you want to see…"></textarea>
+        <select class="rewriter-pick" id="rewriterPick" title="Prompt rewriter">
+          <option value="structure">Structure (built-in)</option>
+        </select>
+        <button class="spark" id="rewrite" title="Structure for this mode">✦</button>
+        <button class="stop" id="stop" title="Stop current and clear the queue">■</button>
+        <button class="go" id="go" title="Generate">↑</button>
+      </div>
+      <div class="film-dock" id="filmDock">
+        <select class="rewriter-pick" id="rewriterPickFilm" title="Prompt rewriter">
+          <option value="structure">Structure (built-in)</option>
+        </select>
+        <button type="button" id="filmGenOne">This clip</button>
+        <button type="button" class="primary" id="filmGenAll">Generate</button>
+        <button type="button" id="filmStitch">Stitch</button>
+      </div>
+    </div>
+    <div class="hint-row">
+      <span>Ctrl+Enter to send · ↑ queues if one is already running · Esc to stop</span>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<section class="sheet" id="libSheet">
+  <div class="sheet-head">
+    <div>
+      <h2>Library</h2>
+      <p class="who" id="libBlurb">Files in the shared media hub.</p>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <div class="seg" id="libSeg">
+        <button type="button" data-lib="gallery" class="on">Gallery</button>
+        <button type="button" data-lib="history">History</button>
+      </div>
+      <button class="ghost" id="refreshLib" type="button">Refresh</button>
+      <button class="ghost" id="closeLib" type="button">Close</button>
+    </div>
+  </div>
+  <div class="lib-bar">
+    <input class="txt" id="libSearch" type="search" placeholder="Search prompts, models, filenames…" autocomplete="off" />
+    <div class="seg" id="libKind">
+      <button type="button" data-kind="all" class="on">All</button>
+      <button type="button" data-kind="image">Images</button>
+      <button type="button" data-kind="video">Video</button>
+    </div>
+    <div class="seg" id="libSource">
+      <button type="button" data-source="all" class="on">All sources</button>
+      <button type="button" data-source="generated">Generated</button>
+      <button type="button" data-source="uploaded">Uploaded</button>
+    </div>
+  </div>
+  <div class="ggrid" id="galGrid"></div>
+  <div class="hist-list" id="histList" hidden></div>
+</section>
+<section class="sheet" id="packSheet">
+  <div class="sheet-head">
+    <h2 id="packSheetTitle">Choose a model</h2>
+    <div style="display:flex;gap:8px">
+      <button class="ghost" id="refreshPacks" type="button">Rescan</button>
+      <button class="ghost" id="closePacks" type="button">Close</button>
+    </div>
+  </div>
+  <div id="packList">
+    <div class="grid" id="packGrid"></div>
+    <div class="newfiles" id="newFiles"></div>
+  </div>
+</section>
+
+<div class="setup" id="setup">
+  <div class="setup-card">
+    <h2>Set up ComfyUI</h2>
+    <p>Your Imagination is a UI for ComfyUI. The app works without it so you can finish setup here. This repo does not include Comfy weights — you install ComfyUI separately (the Windows portable is about 2&nbsp;GB).</p>
+    <p class="conn-note" id="setupComfyNote">Checking ComfyUI…</p>
+    <div class="comfy-links">
+      <a class="ghost" id="setupComfyDocs" href="https://docs.comfy.org/installation/comfyui_portable_windows" target="_blank" rel="noopener">Install docs</a>
+      <a class="ghost" id="setupComfyReleases" href="https://github.com/comfyanonymous/ComfyUI/releases/latest" target="_blank" rel="noopener">GitHub releases</a>
+      <a class="ghost" id="setupComfyZip" href="https://github.com/comfyanonymous/ComfyUI/releases/latest/download/ComfyUI_windows_portable_nvidia.7z" target="_blank" rel="noopener">Download portable (~2 GB)</a>
+    </div>
+    <div class="field">
+      <label>ComfyUI portable folder</label>
+      <div class="path-row">
+        <input class="txt" id="setupComfyRoot" spellcheck="false" placeholder="…\ComfyUI_windows_portable" />
+        <button class="ghost" id="setupComfyBrowse" type="button">Browse</button>
+      </div>
+    </div>
+    <div class="setup-actions" style="margin-bottom:16px">
+      <button class="ghost" id="setupComfyStart" type="button">Start Comfy</button>
+    </div>
+    <div class="field">
+      <label>Models folder</label>
+      <div class="path-row">
+        <input class="txt" id="setupPath" spellcheck="false" placeholder="…\ComfyUI\models" />
+        <button class="ghost" id="setupBrowse" type="button">Browse</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>ComfyUI address</label>
+      <input class="txt" id="setupUrl" value="http://127.0.0.1:8188" spellcheck="false" />
+    </div>
+    <div class="mgr-note" id="setupHint" style="padding:0"></div>
+    <div class="setup-actions">
+      <button class="ghost" id="setupScan" type="button">Scan folder</button>
+      <button class="goish" id="setupGo" type="button">Save and continue</button>
+    </div>
+  </div>
+</div>
+
+<aside class="drawer" id="inspector">
+  <div class="sheet-head">
+    <h2>Pack settings</h2>
+    <button class="ghost" id="closeInsp">Close</button>
+  </div>
+  <div class="body">
+    <button class="ghost gear-back" id="backInsp" type="button">← Settings</button>
+    <div id="inspBody"></div>
+  </div>
+</aside>
+
+<aside class="drawer" id="gear">
+  <div class="sheet-head">
+    <h2>Settings</h2>
+    <button class="ghost" id="closeGear">Close</button>
+  </div>
+  <div class="body">
+    <div class="gear-home" id="gearHome">
+      <button type="button" class="gear-tile" id="openDefaults">
+        <b>Default settings</b>
+        <span>Pick the model for Image, Video, and Edit. Save to keep it. Unsaved changes are discarded.</span>
+      </button>
+      <button type="button" class="gear-tile" id="openPackSettings">
+        <b>Pack settings</b>
+        <span>UNet, CLIP, LoRAs, and downloads for the model that’s loaded now.</span>
+      </button>
+      <button type="button" class="gear-tile" id="openPrivacy">
+        <b>Privacy settings</b>
+        <span>Idle cover, PIN, and the picture shown when you step away. Generation keeps running.</span>
+      </button>
+      <div class="sec">ComfyUI</div>
+      <p class="conn-note" id="settingsComfyNote">Checking ComfyUI…</p>
+      <p style="color:var(--dim);font-size:11.5px;line-height:1.45;margin:0 0 8px">This app does not ship ComfyUI or its weights. Install the official Windows portable (about 2&nbsp;GB), extract it, then set that folder here. On macOS/Linux, install ComfyUI from the docs and start it yourself.</p>
+      <div class="comfy-links">
+        <a class="ghost" href="https://docs.comfy.org/installation/comfyui_portable_windows" target="_blank" rel="noopener">Install docs</a>
+        <a class="ghost" href="https://github.com/comfyanonymous/ComfyUI/releases/latest" target="_blank" rel="noopener">GitHub releases</a>
+        <a class="ghost" id="settingsComfyZip" href="https://github.com/comfyanonymous/ComfyUI/releases/latest/download/ComfyUI_windows_portable_nvidia.7z" target="_blank" rel="noopener">Download portable (~2 GB)</a>
+      </div>
+      <div class="field">
+        <label>ComfyUI folder</label>
+        <div class="path-row">
+          <input class="txt" id="settingsComfyRoot" spellcheck="false" placeholder="…\ComfyUI_windows_portable" />
+          <button class="ghost" id="settingsComfyBrowse" type="button">Browse</button>
+        </div>
+      </div>
+      <div class="row2" style="margin-bottom:12px">
+        <button class="ghost" id="settingsComfySave" style="width:100%">Save path</button>
+        <button class="ghost" id="settingsComfyStart" style="width:100%">Start Comfy</button>
+      </div>
+      <div class="sec">Connection</div>
+      <p class="conn-note" id="settingsConnNote">Checking ComfyUI…</p>
+      <div class="row2" style="margin-bottom:12px">
+        <button class="ghost" id="settingsConnect" style="width:100%">Connect</button>
+        <button class="ghost" id="settingsDisconnect" style="width:100%">Disconnect</button>
+      </div>
+      <div class="sec">App</div>
+      <p style="color:var(--dim);font-size:11.5px;line-height:1.45;margin:0 0 12px">Media hub: set YI_MEDIA_HUB to a folder with input and output (shared by ComfyUI and this app). Leave unset to use ComfyUI’s own folders.</p>
+      <p style="color:var(--dim);font-size:11.5px;line-height:1.45;margin:0 0 12px">Local CPU prompt model; GPU stays on Comfy.</p>
+      <button class="ghost" id="restartImagine" style="width:100%">Restart Imagination</button>
+      <p style="color:var(--dim);font-size:11.5px;line-height:1.45;margin:8px 0 12px">Reloads this app so recipe, pack, and progress-pump changes take effect. ComfyUI stays running. The page comes back on its own.</p>
+      <button class="ghost" id="shutdownImagine" style="width:100%">Shut down Your Imagination</button>
+      <p style="color:var(--dim);font-size:11.5px;line-height:1.45;margin:8px 0 0">Stops ComfyUI and this app, then closes both console windows.</p>
+    </div>
+    <div id="gearDefaults" hidden>
+    <button class="ghost gear-back" id="backGear" type="button">← Settings</button>
+    <div class="sec">Default models</div>
+    <p style="color:var(--dim);font-size:12px;line-height:1.45;margin:0 0 12px">Image / Video / Edit use these packs after you save. Closing without saving keeps the last saved defaults.</p>
+    <div id="prefModels"></div>
+    <div class="field"><label>Steps</label><input class="num" id="steps" type="number" value="8" /></div>
+    <div class="row2">
+      <div class="field"><label>Guidance / CFG</label><input class="num" id="cfg" type="number" value="1" step="0.1" /></div>
+      <div class="field"><label>Seed (−1 random)</label><input class="num" id="seed" type="number" value="-1" /></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Sampler</label><select id="sampler"></select></div>
+      <div class="field"><label>Scheduler</label><select id="scheduler"></select></div>
+    </div>
+    <div class="field"><label>Megapixels</label><input class="num" id="mpGear" type="number" value="1.77" step="0.05" min="0.2" max="2" /></div>
+    <div class="field"><label>Output size</label><div id="sizeGear" style="color:var(--dim);font-size:13px;padding:6px 2px">1328×1328</div></div>
+    <div class="field">
+      <label>H3 video size cap (MP)</label>
+      <input class="num" id="videoMaxMp" type="number" value="0.6" step="0.02" min="0.2" max="1.03" />
+      <p style="color:var(--dim);font-size:11.5px;line-height:1.45;margin:8px 0 0">Tuned on an RTX 5050 laptop (8GB VRAM, 16GB RAM). Default 0.6MP is about 1024×576 — looks fine and runs ~10–12 min. 1.0MP is slower for little gain. More VRAM lets you raise this cap. Stills still go to 2.0MP.</p>
+    </div>
+    <div class="field"><label>Denoise (img2img)</label><input class="num" id="denoise" type="number" value="1" step="0.05" /></div>
+    <div class="sec">Connection</div>
+    <div class="field"><label>ComfyUI address</label><input class="txt" id="comfyUrl" value="http://127.0.0.1:8188" spellcheck="false" /></div>
+    <div class="row2" style="margin-bottom:12px">
+      <button class="ghost" id="reconnect" style="width:100%">Connect</button>
+      <button class="ghost" id="disconnectBtn" style="width:100%">Disconnect</button>
+    </div>
+    <div class="field">
+      <label>Models folder</label>
+      <div class="path-row">
+        <input class="txt" id="modelsRoot" spellcheck="false" placeholder="ComfyUI\models" />
+        <button class="ghost" id="browseModels" type="button">Browse</button>
+      </div>
+    </div>
+    <button class="save-prefs" id="savePrefs" type="button">Save user preferences</button>
+    <p style="color:var(--dim);font-size:11.5px;line-height:1.45;margin:8px 0 0">Closing without saving leaves the previous defaults in place.</p>
+    </div>
+    <div id="gearPrivacy" hidden>
+    <button class="ghost gear-back" id="backPrivacy" type="button">← Settings</button>
+    <div class="sec">Privacy settings</div>
+    <p style="color:var(--dim);font-size:12px;line-height:1.45;margin:0 0 12px">Covers this window after idle time, or when you hit the cover button. Jobs keep running. Closing or restarting the app always unlocks — the PIN is only needed while this session is covered.</p>
+    <div class="field">
+      <label>Idle timeout</label>
+      <select id="privacyTimeout" class="pref-select">
+        <option value="0">Off — only the cover button</option>
+        <option value="1">1 minute</option>
+        <option value="2">2 minutes</option>
+        <option value="5">5 minutes</option>
+        <option value="10">10 minutes</option>
+        <option value="15">15 minutes</option>
+        <option value="30">30 minutes</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Cover image</label>
+      <img id="privacyPreviewImg" class="privacy-preview" alt="" hidden />
+      <div id="privacyPreviewEmpty" class="privacy-preview empty">No image — clock on black</div>
+      <input type="file" id="privacyCoverFile" accept="image/*" hidden />
+      <div class="row2">
+        <button class="ghost" id="privacyCoverPick" type="button" style="width:100%">Choose image</button>
+        <button class="ghost" id="privacyCoverClear" type="button" style="width:100%">Remove</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>PIN (4–8 digits)</label>
+      <input class="txt" id="privacyPinCurrent" type="password" inputmode="numeric" maxlength="8" placeholder="Current PIN (if changing)" autocomplete="off" />
+    </div>
+    <div class="row2">
+      <div class="field"><label>New PIN</label><input class="txt" id="privacyPinNew" type="password" inputmode="numeric" maxlength="8" placeholder="New PIN" autocomplete="off" /></div>
+      <div class="field"><label>Confirm</label><input class="txt" id="privacyPinConfirm" type="password" inputmode="numeric" maxlength="8" placeholder="Confirm PIN" autocomplete="off" /></div>
+    </div>
+    <button class="save-prefs" id="privacySavePin" type="button">Save PIN</button>
+    <p style="color:var(--dim);font-size:11.5px;line-height:1.45;margin:8px 0 0" id="privacyPinNote">Set a PIN before the cover can lock.</p>
+    </div>
+  </div>
+</aside>
+
+<div class="privacy-cover" id="privacyCover" hidden>
+  <img id="privacyCoverImg" alt="" hidden />
+  <div class="privacy-clock" id="privacyClock"></div>
+  <form class="privacy-unlock" id="privacyUnlock" autocomplete="off">
+    <label for="privacyUnlockPin">PIN</label>
+    <div class="pin-row">
+      <input class="txt" id="privacyUnlockPin" type="password" inputmode="numeric" maxlength="8" placeholder="••••" autocomplete="off" />
+      <button class="save-prefs" type="submit" style="width:auto;margin:0;padding:8px 16px">Unlock</button>
+    </div>
+    <div class="privacy-err" id="privacyPinErr" hidden>Wrong PIN</div>
+  </form>
+</div>
+
+<div class="film-frame-dlg" id="filmFrameDlg" hidden>
+  <div class="film-frame-card">
+    <h3>Grab a start still</h3>
+    <p class="who">Scrub to the frame you want. This becomes the clip’s start still, not the result video.</p>
+    <video id="filmFrameVideo" muted playsinline controls></video>
+    <div id="filmFrameSeek"></div>
+    <div class="film-frame-actions">
+      <button type="button" class="primary" id="filmFrameUse">Use this frame</button>
+      <button type="button" id="filmFramePick">Choose video…</button>
+      <button type="button" id="filmFrameCancel">Cancel</button>
+    </div>
+  </div>
+</div>
+<input type="file" id="filmFrameFile" accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov,.mkv" hidden />
+<div class="film-vid-pick" id="filmVidPick" hidden>
+  <div class="film-vid-pick-head">Use a history video</div>
+  <div id="filmVidPickList"></div>
+  <button type="button" class="film-vid-browse" id="filmVidBrowse">Browse file…</button>
+</div>
+<input type="file" id="filmVidFile" accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov,.mkv" hidden />
+<div class="toast" id="toast"></div>
+<script src="/recipes.js?v=14"></script>
+<script src="/app.js?v=96"></script>
+</body>
+</html>

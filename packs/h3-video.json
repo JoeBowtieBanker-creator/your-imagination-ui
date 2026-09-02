@@ -1,0 +1,41 @@
+{
+  "id": "h3-video",
+  "title": "MiniMax H3",
+  "blurb": "Photoreal video and identity-locked stills. T2I, R2I, first-frame video, and Film storyboard with character refs.",
+  "modes": ["t2v", "i2v", "t2i", "i2i", "edit"],
+  "family": "h3",
+  "clip_type": "minimax",
+  "graph": "h3",
+  "prompt_recipe": "h3",
+  "files": {
+    "unet": ["minimax_h3_fl2va_pruned_int8*", "minimax_h3_fl2va*"],
+    "clip": ["qwen3vl_32b_minimax_h3_nvfp4*", "qwen3vl_32b_minimax_h3_int8*", "qwen3vl_32b_minimax_h3*"],
+    "vae": ["minimax_h3_video_vae*"],
+    "audio_vae": ["minimax_h3_audio_vae*"]
+  },
+  "optional_files": {
+    "ref_unet": ["minimax_h3_ref2va_pruned_int8*", "minimax_h3_ref2va*"]
+  },
+  "recommended_loras": [
+    {"id": "turbo8", "label": "Turbo 8-step (FL2V)", "patterns": ["minimax_h3_fl2v_turbo_8step*"], "strength": 1.0, "on": true},
+    {"id": "turbo4", "label": "Turbo 4-step (FL2V)", "patterns": ["minimax_h3_fl2v_turbo_4step*"], "strength": 1.0, "on": false},
+    {"id": "turbo_ref4", "label": "Turbo 4-step (Ref2V)", "patterns": ["minimax_h3_ref2v_turbo_4step*"], "strength": 1.0, "on": false}
+  ],
+  "nsfw_loras": [
+    {"id": "bunny", "label": "PinkFluffyBunny FL2V (anatomy, 0.5)", "patterns": ["PinkFluffyBunny-pruned-fl2va*", "PinkFluffyBunny*"], "strength": 0.5, "on": true},
+    {"id": "aftermidnight", "label": "AfterMidnight R2V (anatomy)", "patterns": ["AfterMidnight_ref2va_h3_sexytime*", "AfterMidnight*sexytime*"], "strength": 1.0, "on": true},
+    {"id": "realism", "label": "Realism People (skin, r34l1sm)", "patterns": ["h3-realism-people*", "*MiniMax-H3-Realism*"], "strength": 1.0, "on": false},
+    {"id": "masturbation", "label": "Masturbation (per-clip, 0.8)", "patterns": ["minimax_h3_hmmasturbation_fl2v*", "*hmmasturbation*fl2v*"], "strength": 0.8, "on": false},
+    {"id": "fingering", "label": "Fingering (per-clip, 0.8)", "patterns": ["minimax_h3_fingering_fl2v*", "*fingering*fl2v*"], "strength": 0.8, "on": false},
+    {"id": "cowgirl", "label": "Cowgirl (per-clip, 0.7)", "patterns": ["minimax_h3_cowgirl_position_ref2v*", "*cowgirl*ref2v*"], "strength": 0.7, "on": false}
+  ],
+  "defaults": {
+    "steps": 8,
+    "cfg": 1.0,
+    "sampler": "euler",
+    "scheduler": "simple",
+    "fps": 24,
+    "duration": 5,
+    "neg": "extra limbs, extra fingers, fused bodies, mixed genitals, melted anatomy, extra penis, extra vagina, penis on the woman, shemale, futa, two sets of genitals on one body, deformed hands, extra people, missing legs, amputated limb, floating leg, penis fused to abdomen, extra bulge at base of penis, tentacle penis"
+  }
+}

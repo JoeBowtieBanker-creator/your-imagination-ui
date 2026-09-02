@@ -1,0 +1,23 @@
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.part
+data/
+.env
+.env.*
+*.safetensors
+*.ckpt
+*.pt
+*.pth
+*.gguf
+models/llm/
+.DS_Store
+Thumbs.db
+desktop.ini
+_yi_shot_profile*/
+
+
+# Local media and personal pack drops (not part of the product tree)
+output/
+packs/custom/*.json

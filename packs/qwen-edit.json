@@ -1,0 +1,32 @@
+{
+  "id": "qwen-edit",
+  "title": "Qwen Image Edit",
+  "blurb": "Instruction edits on an attached photo. Describe the change; the pack keeps the source identity.",
+  "modes": ["edit", "i2i"],
+  "family": "qwen",
+  "clip_type": "qwen_image",
+  "graph": "qwen_edit",
+  "prompt_recipe": "qwen_edit",
+  "files": {
+    "unet": ["qwen_image_edit_2511_fp8mixed*", "qwen_image_edit_2511*", "Qwen-Image-Edit-2511*"],
+    "clip": ["qwen_2.5_vl_7b_fp8_scaled*", "qwen_2.5_vl_7b*", "Qwen2.5-VL-7B-Instruct*.gguf"],
+    "vae": ["qwen_image_vae*"]
+  },
+  "recommended_loras": [
+    {"id": "lightning4", "label": "Lightning 4-step (faster, worse anatomy)", "patterns": ["Qwen-Image-Edit-2511-Lightning-4steps*"], "strength": 1.0, "on": false}
+  ],
+  "nsfw_loras": [
+    {"id": "sexgod", "label": "SexGod 2511 (female anatomy)", "patterns": ["SEXGOD_FemaleNudity_QwenEdit_2511*", "SEXGOD*2511*"], "strength": 0.55, "on": true},
+    {"id": "unblur", "label": "Unblur / upscale 2511 (crunches faces — leave off)", "patterns": ["Qwen-Image-Edit-Unblur-Upscale*"], "strength": 0.35, "on": false},
+    {"id": "snofs", "label": "Qwen Snofs (backup, leave off if SexGod is on)", "patterns": ["Qwen_Snofs*"], "strength": 0.45, "on": false}
+  ],
+  "defaults": {
+    "steps": 20,
+    "cfg": 2.2,
+    "sampler": "euler",
+    "scheduler": "simple",
+    "shift": 3.1,
+    "denoise": 1.0,
+    "neg": "plastic skin, beauty filter, poreless face, airbrushed, waxy, oversharpened, painterly, feathery, fuzzy edges, watercolor, gaussian blur, plastic doll, different face, deformed face, extra fingers, text, watermark, censored, mosaic, mixed genitals, extra penis, extra vagina, fused crotch, hermaphrodite, badly drawn anatomy, extra limbs"
+  }
+}

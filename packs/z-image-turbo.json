@@ -1,0 +1,24 @@
+{
+  "id": "z-image-turbo",
+  "title": "Z-Image Turbo",
+  "blurb": "Very fast realistic stills. Good second option next to Klein.",
+  "modes": ["t2i", "i2i"],
+  "family": "zimage",
+  "clip_type": "lumina2",
+  "graph": "zimage",
+  "prompt_recipe": "photo",
+  "files": {
+    "unet": ["z_image_turbo*", "z-image-turbo*"],
+    "clip": ["qwen_3_4b*", "qwen3-4b*", "qwen3_4b*"],
+    "vae": ["ae.safetensors"]
+  },
+  "recommended_loras": [],
+  "nsfw_loras": [],
+  "defaults": {
+    "steps": 8,
+    "cfg": 1.0,
+    "sampler": "euler",
+    "scheduler": "simple",
+    "denoise": 1.0
+  }
+}
